@@ -65,7 +65,16 @@ class Hand:
 
         self.evaluator = HandEvaluatorMixin(self.cards)
 
+    def __str__(self):
+        if len(self.cards) > 0:
+            return " ".join([f"{c.rank}{c.suit}" for c in self.cards])
+        else:
+            return ""
+
     def add_cards(self, cards):
+        """
+        :type cards: list
+        """
         for c in cards:
             self.cards.append(c)
 
@@ -84,7 +93,7 @@ class Hand:
 
     def remove_cards(self, lambda_statement=None, index=None):
         """
-        Filters self.cards according to the provided lambda statement or index.  If both are specified, filters first.
+        Filters self.cards according to the provided lambda statement.  If both are specified, lambdas filter first.
         """
 
         if lambda_statement:
@@ -96,6 +105,29 @@ class Hand:
         # reinitialize hand evaluator
         self.evaluator = HandEvaluatorMixin(self.cards)
 
+    def remove_top_card(self):
+        """
+        Removes the first card.
+        """
+
+        self.cards = self.cards[1:len(self.cards)]
+
+        # reinitialize hand evaluator
+        self.evaluator = HandEvaluatorMixin(self.cards)
+
+    def remove_all_cards(self):
+        self.cards.clear()
+
+        # reinitialize hand evaluator
+        self.evaluator = HandEvaluatorMixin(self.cards)
+
+    def remove_cards_by_rank(self, ranks):
+
+        self.cards = [c for c in self.cards if c.rank not in ranks]
+
+        # reinitialize hand evaluator
+        self.evaluator = HandEvaluatorMixin(self.cards)
+
     def remove_lowest_ranked_card(self):
         if len(self.cards) != 0:
             self.cards.remove(min(self.cards, key=lambda x: x.rank))
@@ -103,14 +135,27 @@ class Hand:
             # reinitialize hand evaluator
             self.evaluator = HandEvaluatorMixin(self.cards)
 
+    def remove_lowest_point_value_card(self):
+        if len(self.cards) != 0:
+            self.cards.remove(min(self.cards, key=lambda x: x.point_value))
+
+            # reinitialize hand evaluator
+            self.evaluator = HandEvaluatorMixin(self.cards)
+
     def shuffle(self):
         shuffle(self.cards)
 
-    def print(self):
-        for c in self.cards:
-            print(c.rank + c.suit, end=" ")
+    def draw_cards_from_deck(self, deck, amount):
+        """
+        Draws a card from a deck.
+        """
 
-        print("")
+        for a in range(amount):
+            self.add_cards([deck.cards[0]])
+            deck.remove_top_card()
+
+    def get_total_rank_values(self):
+        return sum([c.rank_value for c in self.cards])
 
 
 class Deck(Hand):
@@ -127,7 +172,8 @@ class Deck(Hand):
 
 class HandEvaluatorMixin:
     def __init__(self, cards):
-        self.cards = cards
+
+        self.cards = cards if cards else []
 
         self.all_card_suits = self._enumerate_card_suits()
         self.all_card_ranks = self._enumerate_card_ranks()
@@ -214,7 +260,7 @@ class HandEvaluatorMixin:
 
 
 class Card:
-    def __init__(self, rank, rank_value, suit, color):
+    def __init__(self, rank, rank_value, suit, color, point_value=None):
         """
         A playing card.
 
@@ -226,9 +272,18 @@ class Card:
         :type suit: str
         :param color: A card's color.
         :type color: str
+        :param point_value: A card's point value - if that matters.
+        :type point_value: int
         """
 
         self.rank = rank
         self.rank_value = rank_value
         self.suit = suit
         self.color = color
+
+    def assign_custom_rank_value(self, custom_ranks_to_rank_values_dict):
+        """
+        :type custom_ranks_to_rank_values_dict: A dictionary mapping card ranks to point values.
+        """
+
+        self.rank_value = custom_ranks_to_rank_values_dict[self.rank]

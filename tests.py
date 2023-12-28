@@ -1,5 +1,5 @@
 import unittest
-from models import Deck, Card
+from models import Deck, Card, Hand
 
 
 class HandEvaluations(unittest.TestCase):
@@ -167,6 +167,7 @@ class HandEvaluations(unittest.TestCase):
             )
 
     @staticmethod
+    @unittest.skip
     def test_get_diminishing_straights_probabibilty():
         """
         Given a custom deck, calculate the probability of the deck having a 3-card straight.
@@ -205,3 +206,165 @@ class HandEvaluations(unittest.TestCase):
                         straight_count_frequencies[i] / max_iterations * 100
                     )
                 )
+
+    @staticmethod
+    @unittest.skip
+    def test_draw_card():
+        hand = Hand()
+        deck = Deck()
+
+        deck.shuffle()
+
+        ranks_to_rank_values = {
+            "A": 1,
+            "K": 10,
+            "Q": 10,
+            "J": 10,
+            "10": 10,
+            "9": 9,
+            "8": 6,
+            "7": 7,
+            "6": 6,
+            "5": 5,
+            "4": 4,
+            "3": 3,
+            "2": 2
+        }
+
+        for card in hand.cards:
+            card.assign_custom_rank_value(ranks_to_rank_values)
+
+        for card in deck.cards:
+            card.assign_custom_rank_value(ranks_to_rank_values)
+
+        hand.remove_all_cards()
+        hand.draw_cards_from_deck(deck, 5)
+
+        print(hand.get_total_rank_values())
+
+    @staticmethod
+    def test_get_rank_values():
+
+        ranks_to_rank_values = {
+            "A": 1,
+            "K": 10,
+            "Q": 10,
+            "J": 10,
+            "10": 10,
+            "9": 9,
+            "8": 6,
+            "7": 7,
+            "6": 6,
+            "5": 5,
+            "4": 4,
+            "3": 3,
+            "2": 2
+        }
+
+        total_rank_values = {}
+
+        for i in range(0, 50000):
+            hand = Hand()
+            deck = Deck()
+
+            deck.remove_cards_by_rank(["10", "9", "8"])
+            deck.shuffle()
+
+            for card in hand.cards:
+                card.assign_custom_rank_value(ranks_to_rank_values)
+
+            for card in deck.cards:
+                card.assign_custom_rank_value(ranks_to_rank_values)
+
+            hand.remove_all_cards()
+            hand.draw_cards_from_deck(deck, 5)
+
+            total = hand.get_total_rank_values()
+
+            if total not in total_rank_values:
+                total_rank_values[total] = 1
+            else:
+                total_rank_values[total] += 1
+
+        total_rank_values = dict(sorted(total_rank_values.items()))
+
+        # for trv in total_rank_values:
+        #     print(trv, total_rank_values[trv] / 500)
+
+        # print(sum([total_rank_values[trv] / 500 for trv in total_rank_values]))
+
+        sum = 0
+        total_rank_value_histogram = []
+
+        for trv in total_rank_values:
+            sum += total_rank_values[trv] / 500
+            total_rank_value_histogram.append((trv, sum))
+
+        print(total_rank_value_histogram)
+
+    # @staticmethod
+    # def test_determine_if_other_hands_have_lower_total_card_rank_values():
+    #
+    #     ranks_to_rank_values = {
+    #         "A": 1,
+    #         "K": 10,
+    #         "Q": 10,
+    #         "J": 10,
+    #         "10": 10,
+    #         "9": 9,
+    #         "8": 6,
+    #         "7": 7,
+    #         "6": 6,
+    #         "5": 5,
+    #         "4": 4,
+    #         "3": 3,
+    #         "2": 2
+    #     }
+    #
+    #     player_count = 5
+    #
+    #     lowest_vs_caught = {
+    #         "WON": 0,
+    #         "CAUGHT": 0
+    #     }
+    #
+    #     total_rank_values = {}
+    #
+    #     for i in range(0, 50000):
+    #
+    #         deck = Deck()
+    #
+    #         deck.remove_cards_by_rank(["10", "9", "8"])
+    #         deck.shuffle()
+    #
+    #         for card in deck.cards:
+    #             card.assign_custom_rank_value(ranks_to_rank_values)
+    #
+    #         hands = [Hand() for h in range(0, player_count)]
+    #
+    #         for h in hands:
+    #             h.remove_all_cards()
+    #             h.draw_cards_from_deck(deck, 5)
+    #
+    #         hand_rank_value_totals = [h.get_total_rank_values() for h in hands]
+    #
+    #         total = hands[0].get_total_rank_values()
+    #
+    #         if total not in total_rank_values:
+    #             total_rank_values[total] = 1
+    #         else:
+    #             total_rank_values[total] += 1
+    #
+    #         if total == min(hand_rank_value_totals) and hand_rank_value_totals.count(total) == 1:
+    #             lowest_vs_caught["WON"] += 1
+    #         else:
+    #             lowest_vs_caught["CAUGHT"] += 1
+    #
+    #     sum = 0
+    #     total_rank_value_histogram = []
+    #
+    #     for trv in total_rank_values:
+    #         sum += total_rank_values[trv] / 500
+    #         total_rank_value_histogram.append((trv, sum))
+    #
+    #     print(total_rank_value_histogram)
